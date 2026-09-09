@@ -10,28 +10,44 @@ export async function GET(request) {
   const url = searchParams.get("url");
 
   if (!url) {
-    return NextResponse.json(
+    return new Response(
+      JSON.stringify(
+        {
+          error: "URL parameter is required",
+          usage: "/api/scrape?url=CRICBUZZ_MATCH_URL",
+          example:
+            "/api/scrape?url=https://www.cricbuzz.com/live-cricket-scores/154584/bbt-vs-tkr-27th-match-caribbean-premier-league-2026",
+        },
+        null,
+        2
+      ),
       {
-        දෝෂය: "URL පරාමිතිය අවශ්‍යයි",
-        භාවිතය: "/api/scrape?url=CRICBUZZ_MATCH_URL",
-        උදාහරණය:
-          "/api/scrape?url=https://www.cricbuzz.com/live-cricket-scores/170010/nam-vs-zim-5th-match-namibia-t20i-tri-series-2026",
-      },
-      { status: 400 }
+        status: 400,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
     );
   }
 
   if (!url.includes("cricbuzz.com")) {
-    return NextResponse.json(
-      { දෝෂය: "වලංගු Cricbuzz URL එකක් දෙන්න" },
-      { status: 400 }
+    return new Response(
+      JSON.stringify({ error: "Please provide a valid Cricbuzz match URL" }, null, 2),
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
     );
   }
 
   try {
     const data = await scrapeMatch(url);
 
-    return NextResponse.json(data, {
+    return new Response(JSON.stringify(data, null, 2), {
       status: 200,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -40,12 +56,22 @@ export async function GET(request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
+    return new Response(
+      JSON.stringify(
+        {
+          error: "Scraping failed",
+          message: error.message,
+        },
+        null,
+        2
+      ),
       {
-        දෝෂය: "Scraping අසාර්ථක විය",
-        විස්තරය: error.message,
-      },
-      { status: 500 }
+        status: 500,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
     );
   }
 }
