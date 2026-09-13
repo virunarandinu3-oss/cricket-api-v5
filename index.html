@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏏 LIVE CRICKET BROADCAST GRAPHICS - TV OVERLAY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Rajdhani:wght@600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0118;
+      --card-bg: rgba(28, 4, 58, 0.85);
+      --purple-base: #2a0845;
+      --purple-accent: #6441a5;
+      --neon-magenta: #ff007f;
+      --neon-pink: #ff2a8d;
+      --neon-yellow: #ffee00;
+      --neon-cyan: #00f2fe;
+      --neon-green: #00ff66;
+      --neon-red: #ff2244;
+      --text-white: #ffffff;
+      --text-dim: #c5b4e3;
+      --gold: #ffd700;
+      --shadow-glow: 0 0 25px rgba(255, 0, 127, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 20%, #1d033a 0%, #0c0117 60%, #05000c 100%);
+      color: var(--text-white);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* BROADCAST CANVAS CONTAINER - 16:9 TV ASPECT RATIO OPTIMIZED FOR YOUTUBE */
+    #broadcast-stage {
+      width: 100%;
+      max-width: 1440px;
+      aspect-ratio: 16 / 9;
+      min-height: 810px;
+      margin: 15px auto;
+      background: linear-gradient(180deg, rgba(35, 6, 75, 0.7) 0%, rgba(13, 1, 28, 0.95) 100%);
+      border: 3px solid rgba(255, 0, 127, 0.4);
+      border-radius: 24px;
+      box-shadow: 0 0 50px rgba(100, 65, 165, 0.3), inset 0 0 40px rgba(0, 0, 0, 0.8);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TV SCANLINE & CRT SUBTLE GLOW EFFECT FOR PRO BROADCAST VIBE */
+    #broadcast-stage::before {
+      content: " ";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+      z-index: 99;
+      opacity: 0.6;
+    }
+
+    /* TOP LIVE HEADER BAR (MATCHING SCREENSHOT 1 & 2) */
+    .tv-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(90deg, #ff007f 0%, #7b1fa2 40%, #4a148c 60%, #ff007f 100%);
+      padding: 8px 18px;
+      border-bottom: 3px solid #ffee00;
+      position: relative;
+      z-index: 10;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .team-badge-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .flag-avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 3px solid #ffee00;
+      box-shadow: 0 0 15px rgba(255, 238, 0, 0.6);
+      background: radial-gradient(circle, #333 30%, #111 80%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .flag-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .team-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .team-name-tag {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #ffee00;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 4px #000;
+      line-height: 1;
+    }
+
+    .score-digits {
+      font-family: 'Teko', sans-serif;
+      font-size: 50px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 0.9;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.7), 2px 2px 0 #000;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .score-digits .overs-badge {
+      font-size: 28px;
+      color: #ffee00;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 800;
+    }
+
+    /* CENTER STATUS PILL */
+    .center-status-pill {
+      background: #000d66;
+      border: 2px solid #ffee00;
+      padding: 6px 24px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 13, 102, 0.8), inset 0 0 10px rgba(255, 238, 0, 0.3);
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 10px rgba(255, 238, 0, 0.4); }
+      100% { box-shadow: 0 0 25px rgba(255, 238, 0, 0.9); }
+    }
+
+    .center-status-pill .main-event {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffee00;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .center-status-pill .sub-event {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* SECONDARY INFO STRIP (CRR, PARTNERSHIP, TOSS) */
+    .sub-strip {
+      background: rgba(10, 1, 26, 0.95);
+      border-bottom: 2px solid rgba(255, 0, 127, 0.3);
+      padding: 6px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: 0.8px;
+      z-index: 5;
+    }
+
+    .sub-strip .info-highlight {
+      color: #ffee00;
+      text-shadow: 0 0 8px rgba(255, 238, 0, 0.6);
+    }
+
+    /* STAGE MAIN CONTENT AREA */
+    .stage-body {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* VIEW 1: LIVE BROADCAST GRAPHICS WITH 3D FIELD OVERLAY (SCREENSHOT 2) */
+    #view-live {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: radial-gradient(ellipse at 50% 60%, rgba(30, 90, 40, 0.35) 0%, rgba(15, 2, 35, 0.9) 70%),
+                  radial-gradient(circle at 50% 50%, #17381b 0%, #0c1a0f 45%, #050110 80%);
+    }
+
+    /* VIRTUAL 3D CRICKET PITCH CANVAS */
+    .pitch-ground {
+      position: absolute;
+      top: 5%;
+      left: 50%;
+      transform: translateX(-50%) perspective(600px) rotateX(45deg);
+      width: 680px;
+      height: 380px;
+      background: radial-gradient(ellipse at center, #358d3f 0%, #206127 60%, #15451a 100%);
+      border: 8px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50%;
+      box-shadow: 0 0 60px rgba(0, 255, 102, 0.2), inset 0 0 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* PITCH STRIP IN CENTER */
+    .pitch-strip {
+      width: 120px;
+      height: 240px;
+      background: #c2ab7b;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border-left: 2px dashed rgba(255, 255, 255, 0.6);
+      border-right: 2px dashed rgba(255, 255, 255, 0.6);
+      position: relative;
+    }
+
+    .pitch-crease-top, .pitch-crease-bottom {
+      position: absolute;
+      left: 0; right: 0;
+      height: 3px;
+      background: #ffffff;
+    }
+    .pitch-crease-top { top: 30px; }
+    .pitch-crease-bottom { bottom: 30px; }
+
+    /* FLOATING STADIUM SPOTLIGHTS */
+    .spotlight-left, .spotlight-right {
+      position: absolute;
+      top: 10px;
+      width: 250px;
+      height: 350px;
+      background: radial-gradient(ellipse at top, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+      transform: rotate(25deg);
+    }
+    .spotlight-left { left: 40px; transform: rotate(30deg); }
+    .spotlight-right { right: 40px; transform: rotate(-30deg); }
+
+    /* LOWER THIRDS / PLAYER STATS OVERLAY (MATCHING SCREENSHOT 2) */
+    .broadcast-lower-thirds {
+      position: absolute;
+      bottom: 45px;
+      left: 15px;
+      right: 15px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      z-index: 10;
+    }
+
+    .player-live-card {
+      background: linear-gradient(180deg, rgba(20, 2, 45, 0.95) 0%, rgba(8, 0, 20, 0.98) 100%);
+      border-radius: 16px;
+      border: 2px solid rgba(255, 0, 127, 0.6);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 0, 127, 0.3);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+    }
+
+    .player-live-card.on-strike {
+      border: 2px solid #ffee00;
+      box-shadow: 0 0 25px rgba(255, 238, 0, 0.6), inset 0 0 15px rgba(255, 238, 0, 0.2);
+    }
+
+    .role-badge-tag {
+      position: absolute;
+      top: -14px;
+      left: 18px;
+      background: linear-gradient(90deg, #000d66, #0017a8);
+      border: 1.5px solid #ffee00;
+      padding: 3px 14px;
+      border-radius: 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffee00;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+      text-transform: uppercase;
+    }
+
+    .player-profile-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .player-photo-circle {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 2px solid #00f2fe;
+      background: radial-gradient(circle, #3d1b6e 0%, #15022e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.5);
+      flex-shrink: 0;
+    }
+
+    .player-live-card.on-strike .player-photo-circle {
+      border: 2px solid #ffee00;
+      box-shadow: 0 0 15px rgba(255, 238, 0, 0.8);
+    }
+
+    .player-name-block {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .player-live-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .strike-bat-icon {
+      color: #ffee00;
+      font-size: 18px;
+      animation: pulseStrike 1s infinite alternate;
+    }
+
+    @keyframes pulseStrike {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.25) rotate(-10deg); }
+    }
+
+    .player-primary-score {
+      font-family: 'Teko', sans-serif;
+      font-size: 44px;
+      font-weight: 700;
+      color: #ffee00;
+      line-height: 0.9;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .player-balls-faced {
+      font-size: 22px;
+      font-family: 'Rajdhani', sans-serif;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .player-substats-strip {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      margin-top: 8px;
+      padding-top: 6px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: #c5b4e3;
+    }
+
+    .player-substats-strip span b {
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    /* BOTTOM TICKER / RECENT BALLS TAPE */
+    .recent-balls-ticker {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 38px;
+      background: #050011;
+      border-top: 2px solid rgba(255, 0, 127, 0.4);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      z-index: 15;
+    }
+
+    .ticker-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: #ffee00;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .ball-bubbles-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 1;
+      overflow-x: auto;
+    }
+
+    .ball-pill {
+      min-width: 28px;
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      flex-shrink: 0;
+    }
+
+    .ball-dot { background: #261545; color: #aaa; border: 1px solid #442a70; }
+    .ball-run { background: #0088cc; color: #fff; border: 1px solid #00f2fe; }
+    .ball-four { background: #00aa44; color: #fff; border: 1.5px solid #ffee00; box-shadow: 0 0 10px #00ff66; }
+    .ball-six { background: #7b1fa2; color: #ffee00; border: 1.5px solid #ffee00; box-shadow: 0 0 12px #ffee00; }
+    .ball-wkt { background: #d50000; color: #fff; border: 1.5px solid #ffee00; box-shadow: 0 0 15px #ff2244; font-weight: 900; animation: flashW 1.2s infinite; }
+
+    @keyframes flashW {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* VIEW 2: FULL SCORECARD & INNINGS BREAK (SCREENSHOT 3) */
+    #view-scorecard {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      background: radial-gradient(circle at 50% 20%, #29084a 0%, #110124 100%);
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+
+    .sc-header-banner {
+      background: linear-gradient(90deg, #d81b60 0%, #8e24aa 50%, #4a148c 100%);
+      border-radius: 12px 12px 0 0;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #ffee00;
+    }
+
+    .sc-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffee00;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sc-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(18, 2, 40, 0.95);
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      margin-bottom: 20px;
+    }
+
+    .sc-table th {
+      background: #9c0042;
+      color: #ffffff;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      padding: 10px 14px;
+      text-align: right;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #ffee00;
+    }
+
+    .sc-table th:first-child { text-align: left; }
+    .sc-table th:nth-child(2) { text-align: left; }
+
+    .sc-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      text-align: right;
+      color: #ffffff;
+    }
+
+    .sc-table tr:hover {
+      background: rgba(255, 0, 127, 0.15);
+    }
+
+    .sc-table td.player-col {
+      color: #ffee00;
+      font-weight: 800;
+      font-size: 20px;
+      text-align: left;
+    }
+
+    .sc-table td.dismissal-col {
+      color: #e0d0f5;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    /* FOW PILL ROW */
+    .fow-container {
+      background: rgba(12, 1, 28, 0.9);
+      border: 1px solid rgba(255, 0, 127, 0.4);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+    }
+
+    .fow-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: #ffee00;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .fow-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .fow-item {
+      background: #1f0540;
+      border: 1px solid rgba(255, 238, 0, 0.4);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .fow-item b { color: #ffee00; }
+
+    /* VIEW 3: POINTS TABLE & STANDINGS (SCREENSHOT 1) */
+    #view-points {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      background: radial-gradient(circle at 50% 20%, #20023d 0%, #0c0017 100%);
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .pt-card-wrap {
+      background: #230449;
+      border: 2px solid #ff007f;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 35px rgba(255, 0, 127, 0.35);
+    }
+
+    .pt-header-strip {
+      background: linear-gradient(90deg, #b71c1c 0%, #880e4f 50%, #4a148c 100%);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #ffee00;
+    }
+
+    .pt-header-strip h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffee00;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .pt-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    .pt-table th {
+      background: #3c096c;
+      color: #ffffff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      padding: 12px 10px;
+      border-bottom: 2px solid rgba(255, 238, 0, 0.5);
+    }
+
+    .pt-table td {
+      padding: 12px 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .pt-table tr:nth-child(even) {
+      background: rgba(30, 4, 60, 0.6);
+    }
+
+    .pt-table tr:hover {
+      background: rgba(255, 0, 127, 0.25);
+    }
+
+    .pt-rank { color: #ffee00; font-size: 24px; font-weight: 900; }
+    .pt-team-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      color: #ffee00;
+      font-size: 22px;
+    }
+
+    .pt-team-flag {
+      width: 34px;
+      height: 24px;
+      background: #ff007f;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .pt-q-mark {
+      color: #00ff66;
+      font-size: 16px;
+    }
+
+    /* VIEW 4: SQUADS & PLAYING XI */
+    #view-squads {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      background: radial-gradient(circle at 50% 20%, #20023d 0%, #0c0017 100%);
+      padding: 18px 24px;
+      overflow-y: auto;
+    }
+
+    .squads-dual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .squad-column-box {
+      background: rgba(24, 3, 50, 0.95);
+      border: 2px solid rgba(255, 0, 127, 0.5);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+    }
+
+    .squad-team-header {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffee00;
+      text-transform: uppercase;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ffee00;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .squad-player-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .squad-row-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(45, 6, 85, 0.5);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .squad-row-item .role-tag {
+      font-size: 13px;
+      color: #00f2fe;
+      background: rgba(0, 242, 254, 0.15);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* VIEW 5: COMMENTARY TIMELINE */
+    #view-comm {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      background: radial-gradient(circle at 50% 20%, #20023d 0%, #0c0017 100%);
+      padding: 18px 24px;
+      overflow-y: auto;
+    }
+
+    .comm-card-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .comm-entry-box {
+      background: rgba(22, 2, 45, 0.9);
+      border-left: 5px solid #ff007f;
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .comm-entry-box.has-w { border-left-color: #ff2244; background: rgba(255, 34, 68, 0.1); }
+    .comm-entry-box.has-4, .comm-entry-box.has-6 { border-left-color: #00ff66; background: rgba(0, 255, 102, 0.1); }
+
+    .comm-over-pill {
+      background: #ffee00;
+      color: #000;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      padding: 2px 10px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .comm-text-body {
+      font-size: 15px;
+      line-height: 1.4;
+      color: #ffffff;
+    }
+
+    /* WATERMARK BRANDING */
+    .tv-watermark {
+      position: absolute;
+      top: 14px;
+      right: 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      color: rgba(255, 255, 255, 0.55);
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tv-watermark span { color: #ffee00; font-weight: 900; }
+
+    /* CONTROLLER PANEL AT BOTTOM OF WEBPAGE */
+    .broadcast-controls {
+      width: 100%;
+      max-width: 1440px;
+      margin: 15px auto 40px auto;
+      background: #14022c;
+      border: 2px solid #6441a5;
+      border-radius: 16px;
+      padding: 16px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .control-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-tv {
+      background: linear-gradient(180deg, #3d1575 0%, #1c053d 100%);
+      border: 1.5px solid #ff007f;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      padding: 8px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .btn-tv:hover {
+      background: linear-gradient(180deg, #ff007f 0%, #7b1fa2 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 0 18px rgba(255, 0, 127, 0.6);
+    }
+
+    .btn-tv.active {
+      background: #ffee00;
+      color: #000;
+      border-color: #ffee00;
+      box-shadow: 0 0 20px rgba(255, 238, 0, 0.8);
+    }
+
+    .toggle-auto {
+      background: #00aa44;
+      border-color: #00ff66;
+    }
+
+    .toggle-auto.off {
+      background: #444;
+      border-color: #777;
+    }
+
+    /* MODAL FOR RAW JSON PASTE */
+    #json-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      width: 90%;
+      max-width: 700px;
+      background: #190333;
+      border: 2px solid #ffee00;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 0 40px rgba(255, 238, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-box h3 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 24px;
+      color: #ffee00;
+      text-transform: uppercase;
+    }
+
+    .modal-box textarea {
+      width: 100%;
+      height: 280px;
+      background: #0d011c;
+      border: 1px solid #ff007f;
+      border-radius: 10px;
+      color: #00ff66;
+      font-family: monospace;
+      font-size: 13px;
+      padding: 12px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MAIN BROADCAST STAGE (16:9 OBS / YOUTUBE COMPATIBLE) -->
+  <div id="broadcast-stage">
+
+    <!-- TV LIVE WATERMARK / AUTHOR ATTRIBUTION -->
+    <div class="tv-watermark">
+      🔴 LIVE HD | <span>VIRUNA RANDINU</span>
+    </div>
+
+    <!-- PRIMARY BROADCAST TOP BAR (SCREENSHOT 1 & 2 STYLE) -->
+    <div class="tv-header">
+      
+      <!-- TEAM 1 (GUYANA AMAZON WARRIORS / BATTING) -->
+      <div class="team-badge-box">
+        <div class="flag-avatar" id="team1-avatar">🇬🇾</div>
+        <div class="team-meta">
+          <span class="team-name-tag" id="team1-name">GUYANA WARRIORS</span>
+          <div class="score-digits">
+            <span id="team1-score">117-10</span>
+            <span class="overs-badge" id="team1-overs">14.2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER STATUS / EVENT PILL -->
+      <div class="center-status-pill">
+        <span class="main-event" id="center-main-event">INNINGS BREAK</span>
+        <span class="sub-event" id="center-sub-event">ABF WON BY 65 RUNS</span>
+      </div>
+
+      <!-- TEAM 2 (ANTIGUA & BARBUDA FALCONS / BOWLING OR 1ST INNINGS) -->
+      <div class="team-badge-box" style="flex-direction: row-reverse; text-align: right;">
+        <div class="flag-avatar" id="team2-avatar">🇦🇬</div>
+        <div class="team-meta" style="align-items: flex-end;">
+          <span class="team-name-tag" id="team2-name">ANTIGUA FALCONS</span>
+          <div class="score-digits" style="color: #ffee00;">
+            <span id="team2-score">182-5</span>
+            <span class="overs-badge" id="team2-overs">20.0</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECONDARY INFO STRIP (CRR, PARTNERSHIP, TOSS) -->
+    <div class="sub-strip">
+      <div>CRR: <span class="info-highlight" id="strip-crr">8.25</span> &nbsp;|&nbsp; RRR: <span class="info-highlight" id="strip-rrr">-</span></div>
+      <div>P'SHIP: <span class="info-highlight" id="strip-pship">0 (1)</span></div>
+      <div>TOSS: <span class="info-highlight" id="strip-toss">GAW opt to Bowl</span></div>
+      <div>VENUE: <span class="info-highlight" id="strip-venue">Providence Stadium, Guyana</span></div>
+    </div>
+
+    <!-- BROADCAST STAGE BODY -->
+    <div class="stage-body">
+
+      <!-- ==================== VIEW 1: LIVE ON-FIELD LOWER THIRDS (SCREENSHOT 2) ==================== -->
+      <div id="view-live">
+        <!-- 3D PITCH & FIELD -->
+        <div class="spotlight-left"></div>
+        <div class="spotlight-right"></div>
+        <div class="pitch-ground">
+          <div class="pitch-strip">
+            <div class="pitch-crease-top"></div>
+            <div class="pitch-crease-bottom"></div>
+          </div>
+        </div>
+
+        <!-- LOWER THIRDS OVERLAY (BATTER 1, BATTER 2, ACTIVE BOWLER) -->
+        <div class="broadcast-lower-thirds">
+
+          <!-- BATSMAN 1 (ON STRIKE) -->
+          <div class="player-live-card on-strike" id="card-bat1">
+            <div class="role-badge-tag">🏏 BATSMAN</div>
+            <div class="player-profile-row">
+              <div class="player-photo-circle">👤</div>
+              <div class="player-name-block">
+                <div class="player-live-name">
+                  <span id="bat1-name">Mohammad Nabi</span>
+                  <span class="strike-bat-icon">⚡</span>
+                </div>
+                <div class="player-primary-score">
+                  <span id="bat1-runs">23</span>
+                  <span class="player-balls-faced">(<span id="bat1-balls">22</span>)</span>
+                </div>
+              </div>
+            </div>
+            <div class="player-substats-strip">
+              <span>4s: <b id="bat1-4s">2</b></span>
+              <span>6s: <b id="bat1-6s">0</b></span>
+              <span>SR: <b id="bat1-sr">104.55</b></span>
+            </div>
+          </div>
+
+          <!-- BATSMAN 2 (NON-STRIKER) -->
+          <div class="player-live-card" id="card-bat2">
+            <div class="role-badge-tag">🏏 BATSMAN</div>
+            <div class="player-profile-row">
+              <div class="player-photo-circle">👤</div>
+              <div class="player-name-block">
+                <div class="player-live-name">
+                  <span id="bat2-name">Khary Pierre</span>
+                </div>
+                <div class="player-primary-score">
+                  <span id="bat2-runs">0</span>
+                  <span class="player-balls-faced">(<span id="bat2-balls">1</span>)</span>
+                </div>
+              </div>
+            </div>
+            <div class="player-substats-strip">
+              <span>4s: <b id="bat2-4s">0</b></span>
+              <span>6s: <b id="bat2-6s">0</b></span>
+              <span>SR: <b id="bat2-sr">0.00</b></span>
+            </div>
+          </div>
+
+          <!-- ACTIVE BOWLER -->
+          <div class="player-live-card" id="card-bowler">
+            <div class="role-badge-tag">⚾ BOWLER</div>
+            <div class="player-profile-row">
+              <div class="player-photo-circle">🎯</div>
+              <div class="player-name-block">
+                <div class="player-live-name">
+                  <span id="bowler-name">Joshua James</span>
+                </div>
+                <div class="player-primary-score" style="color: #00ff66;">
+                  <span id="bowler-figures">2-11</span>
+                  <span class="player-balls-faced">(<span id="bowler-overs">1.2</span>)</span>
+                </div>
+              </div>
+            </div>
+            <div class="player-substats-strip">
+              <span>Mdns: <b id="bowler-maidens">0</b></span>
+              <span>Dots: <b>5</b></span>
+              <span>Econ: <b id="bowler-econ">8.25</b></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RECENT BALLS TICKER TAPE AT BOTTOM -->
+        <div class="recent-balls-ticker">
+          <div class="ticker-label">THIS OVER:</div>
+          <div class="ball-bubbles-wrap" id="live-ball-bubbles">
+            <div class="ball-pill ball-dot">0</div>
+            <div class="ball-pill ball-run">1</div>
+            <div class="ball-pill ball-run">2</div>
+            <div class="ball-pill ball-dot">0</div>
+            <div class="ball-pill ball-wkt">W</div>
+            <div class="ball-pill ball-dot">0</div>
+            <div class="ball-pill ball-wkt">W</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 2: SCORECARD / INNINGS BREAK (SCREENSHOT 3) ==================== -->
+      <div id="view-scorecard">
+        <!-- BATTING CARD -->
+        <div class="sc-header-banner">
+          <span class="sc-title">📊 BATTING SCORECARD - <span id="sc-team-title">GUYANA AMAZON WARRIORS</span></span>
+          <span style="font-family: 'Rajdhani'; font-weight:800; font-size:20px; color:#ffee00;">117-10 (14.2 OVs)</span>
+        </div>
+        <table class="sc-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Batter</th>
+              <th style="width: 40%;">Dismissal</th>
+              <th>R</th>
+              <th>B</th>
+              <th>4s</th>
+              <th>6s</th>
+              <th>SR</th>
+            </tr>
+          </thead>
+          <tbody id="scorecard-batting-body">
+            <!-- Dynamically injected -->
+          </tbody>
+        </table>
+
+        <!-- BOWLING CARD -->
+        <div class="sc-header-banner" style="background: linear-gradient(90deg, #1565c0 0%, #00838f 50%, #2e7d32 100%);">
+          <span class="sc-title">⚾ BOWLING FIGURES</span>
+        </div>
+        <table class="sc-table">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Bowler</th>
+              <th>O</th>
+              <th>M</th>
+              <th>R</th>
+              <th>W</th>
+              <th>Econ</th>
+            </tr>
+          </thead>
+          <tbody id="scorecard-bowling-body">
+            <!-- Dynamically injected -->
+          </tbody>
+        </table>
+
+        <!-- FALL OF WICKETS -->
+        <div class="fow-container">
+          <div class="fow-title">💥 Fall of Wickets:</div>
+          <div class="fow-list" id="fow-items-wrap">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 3: POINTS TABLE (SCREENSHOT 1) ==================== -->
+      <div id="view-points">
+        <div class="pt-card-wrap">
+          <div class="pt-header-strip">
+            <h2>🏆 CPL 2026 STANDINGS & POINTS TABLE</h2>
+            <span style="font-family:'Rajdhani'; font-size:18px; color:#fff; font-weight:800;">TOP 4 QUALIFY</span>
+          </div>
+          <table class="pt-table">
+            <thead>
+              <tr>
+                <th style="width: 8%;">POS</th>
+                <th style="width: 35%; text-align: left;">TEAM</th>
+                <th>P</th>
+                <th>W</th>
+                <th>L</th>
+                <th>NR</th>
+                <th>PTS</th>
+                <th>NRR</th>
+              </tr>
+            </thead>
+            <tbody id="points-table-body">
+              <!-- Dynamically injected -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 4: SQUADS & PLAYING XI ==================== -->
+      <div id="view-squads">
+        <div class="squads-dual-grid">
+          <!-- TEAM 1 SQUAD -->
+          <div class="squad-column-box">
+            <div class="squad-team-header">
+              <span id="sq-team1-title">GUYANA AMAZON WARRIORS</span>
+              <span>PLAYING XI</span>
+            </div>
+            <div class="squad-player-list" id="sq-team1-list"></div>
+          </div>
+          <!-- TEAM 2 SQUAD -->
+          <div class="squad-column-box">
+            <div class="squad-team-header">
+              <span id="sq-team2-title">ANTIGUA & BARBUDA FALCONS</span>
+              <span>PLAYING XI</span>
+            </div>
+            <div class="squad-player-list" id="sq-team2-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 5: COMMENTARY TIMELINE ==================== -->
+      <div id="view-comm">
+        <div class="comm-card-feed" id="commentary-list-feed">
+          <!-- Dynamically injected -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONTROL DECK (FOR OBS OPERATOR / YOUTUBE STREAMER) -->
+  <div class="broadcast-controls">
+    <div class="control-btn-group">
+      <button class="btn-tv active" onclick="switchView('live', this)">🔴 LIVE OVERLAY</button>
+      <button class="btn-tv" onclick="switchView('scorecard', this)">📊 SCORECARD</button>
+      <button class="btn-tv" onclick="switchView('points', this)">🏆 POINTS TABLE</button>
+      <button class="btn-tv" onclick="switchView('squads', this)">👥 SQUADS</button>
+      <button class="btn-tv" onclick="switchView('comm', this)">🎙️ COMMENTARY</button>
+    </div>
+
+    <div class="control-btn-group">
+      <button class="btn-tv toggle-auto" id="auto-cycle-btn" onclick="toggleAutoCycle()">⏱️ AUTO-CYCLE: ON</button>
+      <button class="btn-tv" onclick="playSfx('cheer')">🔊 CHEER SFX</button>
+      <button class="btn-tv" onclick="openJsonModal()">⚙️ LOAD JSON DATA</button>
+    </div>
+  </div>
+
+  <!-- LOAD CUSTOM JSON MODAL -->
+  <div id="json-modal">
+    <div class="modal-box">
+      <h3>📥 PASTE YOUR CUSTOM SCRAPED JSON</h3>
+      <textarea id="json-input" placeholder="Paste your scraper output JSON here..."></textarea>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-tv" onclick="closeJsonModal()">CANCEL</button>
+        <button class="btn-tv" style="background:#00aa44;" onclick="applyCustomJson()">APPLY TO BROADCAST</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== DEFAULT PRE-LOADED MATCH DATA ====================
+    let matchData = {
+      "created_by": "Created By Viruna Randinu",
+      "info": {
+        "match_title": "Guyana Amazon Warriors vs Antigua and Barbuda Falcons, 30th Match, Caribbean Premier League 2026",
+        "venue": "Providence Stadium, Guyana",
+        "city": "Guyana, West Indies",
+        "teams": ["Guyana Amazon Warriors", "Antigua and Barbuda Falcons"],
+        "series": "Caribbean Premier League 2026",
+        "match": "GAW vs ABF • 30th Match • CPL 2026",
+        "toss": "Guyana Amazon Warriors won the toss and opt to Bowl"
+      },
+      "live": {
+        "latest_update": "Joshua James to Mohammad Nabi, out Lbw! Clinical performance by the Falcons!",
+        "latest_ball": {
+          "over": "14.2",
+          "badge": "W",
+          "text": "Joshua James to Mohammad Nabi, out Lbw! Nabi has been given out lbw! Thuds into pads and crashes into leg-stump. Mohammad Nabi lbw b Joshua James 23(22) [4s-2]"
+        }
+      },
+      "scorecard": {
+        "batting": [
+          { "name": "Karima Gore", "dismissal": "c Rahmanullah Gurbaz b Khary Pierre", "runs": "23", "balls": "18", "fours": "3", "sixes": "1", "strike_rate": "127.78" },
+          { "name": "Evin Lewis", "dismissal": "lbw b Imran Tahir", "runs": "22", "balls": "18", "fours": "1", "sixes": "2", "strike_rate": "122.22" },
+          { "name": "Amir Jangoo (wk)", "dismissal": "c Shimron Hetmyer b Mohammad Nabi", "runs": "27", "balls": "30", "fours": "0", "sixes": "1", "strike_rate": "90.00" },
+          { "name": "Hasan Nawaz", "dismissal": "c Mohammad Nabi b Shamar Joseph", "runs": "36", "balls": "27", "fours": "3", "sixes": "2", "strike_rate": "133.33" },
+          { "name": "Moeen Ali (c)", "dismissal": "c Dwaine Pretorius b Romario Shepherd", "runs": "18", "balls": "12", "fours": "0", "sixes": "2", "strike_rate": "150.00" },
+          { "name": "Shadab Khan", "dismissal": "not out", "runs": "30", "balls": "9", "fours": "2", "sixes": "3", "strike_rate": "333.33" },
+          { "name": "Fabian Allen", "dismissal": "not out", "runs": "11", "balls": "7", "fours": "0", "sixes": "1", "strike_rate": "157.14" },
+          { "name": "Rahmanullah Gurbaz", "dismissal": "b Alzarri Joseph", "runs": "18", "balls": "8", "fours": "0", "sixes": "3", "strike_rate": "225.00" },
+          { "name": "Mavendra Dindyal", "dismissal": "c Jayden Seales b Alzarri Joseph", "runs": "25", "balls": "13", "fours": "2", "sixes": "2", "strike_rate": "192.31" },
+          { "name": "Shai Hope (wk)", "dismissal": "c Moeen Ali b Alzarri Joseph", "runs": "0", "balls": "3", "fours": "0", "sixes": "0", "strike_rate": "0.00" },
+          { "name": "Shimron Hetmyer", "dismissal": "c Evin Lewis b Joshua James", "runs": "4", "balls": "7", "fours": "0", "sixes": "0", "strike_rate": "57.14" },
+          { "name": "Mohammad Nabi", "dismissal": "lbw b Joshua James", "runs": "23", "balls": "22", "fours": "2", "sixes": "0", "strike_rate": "104.55" },
+          { "name": "Quentin Sampson", "dismissal": "b Shadab Khan", "runs": "12", "balls": "7", "fours": "1", "sixes": "1", "strike_rate": "171.43" },
+          { "name": "Romario Shepherd", "dismissal": "c Karima Gore b Sufyan Moqim", "runs": "6", "balls": "3", "fours": "0", "sixes": "1", "strike_rate": "200.00" },
+          { "name": "Dwaine Pretorius", "dismissal": "b Shadab Khan", "runs": "1", "balls": "3", "fours": "0", "sixes": "0", "strike_rate": "33.33" },
+          { "name": "Shamar Joseph", "dismissal": "b Sufyan Moqim", "runs": "5", "balls": "6", "fours": "1", "sixes": "0", "strike_rate": "83.33" },
+          { "name": "Imran Tahir (c)", "dismissal": "b Alzarri Joseph", "runs": "8", "balls": "14", "fours": "1", "sixes": "0", "strike_rate": "57.14" },
+          { "name": "Khary Pierre", "dismissal": "not out", "runs": "0", "balls": "1", "fours": "0", "sixes": "0", "strike_rate": "0.00" }
+        ],
+        "bowling": [
+          { "name": "Alzarri Joseph", "overs": "4.0", "maidens": "0", "runs": "41", "wickets": "4", "economy": "10.25" },
+          { "name": "Joshua James", "overs": "1.2", "maidens": "0", "runs": "11", "wickets": "2", "economy": "8.25" },
+          { "name": "Shadab Khan", "overs": "4.0", "maidens": "0", "runs": "19", "wickets": "2", "economy": "4.75" },
+          { "name": "Sufyan Moqim", "overs": "3.0", "maidens": "0", "runs": "18", "wickets": "2", "economy": "6.00" }
+        ],
+        "fall_of_wickets": [
+          { "score": "33-1", "player": "Rahmanullah Gurbaz", "over": "2.2" },
+          { "score": "34-2", "player": "Shai Hope", "over": "2.5" },
+          { "score": "54-3", "player": "Mavendra Dindyal", "over": "4.5" },
+          { "score": "59-4", "player": "Shimron Hetmyer", "over": "5.1" },
+          { "score": "74-5", "player": "Quentin Sampson", "over": "6.4" },
+          { "score": "81-6", "player": "Romario Shepherd", "over": "7.2" },
+          { "score": "86-7", "player": "Dwaine Pretorius", "over": "8.1" },
+          { "score": "99-8", "player": "Shamar Joseph", "over": "9.5" },
+          { "score": "117-9", "player": "Imran Tahir", "over": "13.5" },
+          { "score": "117-10", "player": "Mohammad Nabi", "over": "14.2" }
+        ]
+      },
+      "squads": {
+        "Guyana Amazon Warriors": {
+          "playing_xi": [
+            { "name": "Rahmanullah Gurbaz", "role": "WK-Batter" },
+            { "name": "Mavendra Dindyal", "role": "Batting Allrounder" },
+            { "name": "Shai Hope", "role": "WK-Batter" },
+            { "name": "Shimron Hetmyer", "role": "Batter" },
+            { "name": "Mohammad Nabi", "role": "Bowling Allrounder" },
+            { "name": "Quentin Sampson", "role": "Batting Allrounder" },
+            { "name": "Romario Shepherd", "role": "Bowling Allrounder" },
+            { "name": "Dwaine Pretorius", "role": "Bowling Allrounder" },
+            { "name": "Shamar Joseph", "role": "Bowler" },
+            { "name": "Khary Pierre", "role": "Bowler" },
+            { "name": "Imran Tahir (c)", "role": "Bowler" }
+          ]
+        },
+        "Antigua and Barbuda Falcons": {
+          "playing_xi": [
+            { "name": "Evin Lewis", "role": "Batter" },
+            { "name": "Amir Jangoo", "role": "WK-Batter" },
+            { "name": "Karima Gore", "role": "Batting Allrounder" },
+            { "name": "Hasan Nawaz", "role": "Batter" },
+            { "name": "Moeen Ali (c)", "role": "Batting Allrounder" },
+            { "name": "Shadab Khan", "role": "Bowling Allrounder" },
+            { "name": "Fabian Allen", "role": "Batting Allrounder" },
+            { "name": "Joshua James", "role": "Batting Allrounder" },
+            { "name": "Sufyan Moqim", "role": "Bowler" },
+            { "name": "Jayden Seales", "role": "Bowler" },
+            { "name": "Alzarri Joseph", "role": "Bowler" }
+          ]
+        }
+      },
+      "full_commentary": [
+        { "over": "14.2", "badge": "W", "text": "Joshua James to Mohammad Nabi, out Lbw!! Clinical performance by the Falcons! Mohammad Nabi lbw b Joshua James 23(22) [4s-2]" },
+        { "over": "14.1", "badge": "0", "text": "Joshua James to Mohammad Nabi, no run, short ball outside off, Mohammad Nabi goes for a pull and misses" },
+        { "over": "13.6", "badge": "0", "text": "Alzarri Joseph to Khary Pierre, no run, yorker length ball around off, squeezed to point" },
+        { "over": "13.5", "badge": "W", "text": "Alzarri Joseph to Imran Tahir, out Bowled!! Four wickets for Alzarri Joseph! Pitched up around off, skids and rattles off-stump! Imran Tahir b Alzarri Joseph 8(14) [4s-1]" },
+        { "over": "13.2", "badge": "1", "text": "Alzarri Joseph to Mohammad Nabi, 1 run, back of a length delivery around off" },
+        { "over": "13.1", "badge": "2", "text": "Alzarri Joseph to Mohammad Nabi, 2 runs, steered through backward point" }
+      ],
+      "points_table": [
+        { "position": "1", "team": "ABF(Q)", "played": "10", "won": "6", "lost": "3", "no_result": "1", "points": "13", "nrr": "+0.170" },
+        { "position": "2", "team": "GAW(Q)", "played": "7", "won": "6", "lost": "1", "no_result": "0", "points": "12", "nrr": "+1.110" },
+        { "position": "3", "team": "JKM", "played": "9", "won": "4", "lost": "5", "no_result": "0", "points": "8", "nrr": "-0.096" },
+        { "position": "4", "team": "SLK", "played": "9", "won": "4", "lost": "5", "no_result": "0", "points": "8", "nrr": "-0.903" },
+        { "position": "5", "team": "SNP", "played": "9", "won": "3", "lost": "5", "no_result": "1", "points": "7", "nrr": "+0.410" },
+        { "position": "6", "team": "TKR", "played": "9", "won": "3", "lost": "6", "no_result": "0", "points": "6", "nrr": "+0.131" },
+        { "position": "7", "team": "BBT", "played": "7", "won": "3", "lost": "4", "no_result": "0", "points": "6", "nrr": "-0.645" }
+      ]
+    };
+
+    // ==================== RENDER LOGIC ====================
+    function renderBroadcast() {
+      // 1. Top Bar
+      const teams = matchData.info.teams || ["Team 1", "Team 2"];
+      document.getElementById('team1-name').innerText = teams[0].toUpperCase();
+      document.getElementById('team2-name').innerText = teams[1].toUpperCase();
+      document.getElementById('strip-toss').innerText = matchData.info.toss || "-";
+      document.getElementById('strip-venue').innerText = matchData.info.venue || "-";
+
+      // 2. Scorecard Table
+      const scBody = document.getElementById('scorecard-batting-body');
+      scBody.innerHTML = '';
+      if (matchData.scorecard && matchData.scorecard.batting) {
+        matchData.scorecard.batting.forEach(b => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="player-col">${b.name}</td>
+            <td class="dismissal-col">${b.dismissal || 'not out'}</td>
+            <td style="color:#ffee00; font-size:22px;">${b.runs}</td>
+            <td>${b.balls}</td>
+            <td>${b.fours}</td>
+            <td>${b.sixes}</td>
+            <td style="color:#00f2fe;">${b.strike_rate}</td>
+          `;
+          scBody.appendChild(tr);
+        });
+      }
+
+      // 3. Bowling Table
+      const bowlBody = document.getElementById('scorecard-bowling-body');
+      bowlBody.innerHTML = '';
+      if (matchData.scorecard && matchData.scorecard.bowling) {
+        matchData.scorecard.bowling.forEach(b => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="player-col" style="text-align:left;">${b.name}</td>
+            <td>${b.overs}</td>
+            <td>${b.maidens}</td>
+            <td>${b.runs}</td>
+            <td style="color:#00ff66; font-size:22px;">${b.wickets}</td>
+            <td style="color:#00f2fe;">${b.economy}</td>
+          `;
+          bowlBody.appendChild(tr);
+        });
+      }
+
+      // 4. FOW
+      const fowWrap = document.getElementById('fow-items-wrap');
+      fowWrap.innerHTML = '';
+      if (matchData.scorecard && matchData.scorecard.fall_of_wickets) {
+        matchData.scorecard.fall_of_wickets.forEach(f => {
+          const div = document.createElement('div');
+          div.className = 'fow-item';
+          div.innerHTML = `<b>${f.score}</b> (${f.player}, ${f.over} ov)`;
+          fowWrap.appendChild(div);
+        });
+      }
+
+      // 5. Points Table
+      const ptBody = document.getElementById('points-table-body');
+      ptBody.innerHTML = '';
+      if (matchData.points_table && Array.isArray(matchData.points_table)) {
+        matchData.points_table.forEach(row => {
+          const isQualified = row.team.includes('(Q)');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="pt-rank">${row.position}</td>
+            <td>
+              <div class="pt-team-badge">
+                <div class="pt-team-flag">🏏</div>
+                <span>${row.team}</span>
+                ${isQualified ? '<span class="pt-q-mark">✔ (Q)</span>' : ''}
+              </div>
+            </td>
+            <td>${row.played}</td>
+            <td>${row.won}</td>
+            <td>${row.lost}</td>
+            <td>${row.no_result}</td>
+            <td style="color:#ffee00; font-size:24px;">${row.points}</td>
+            <td style="color:#00f2fe;">${row.nrr}</td>
+          `;
+          ptBody.appendChild(tr);
+        });
+      }
+
+      // 6. Squads
+      const teamKeys = Object.keys(matchData.squads || {});
+      if (teamKeys.length >= 2) {
+        document.getElementById('sq-team1-title').innerText = teamKeys[0].toUpperCase();
+        document.getElementById('sq-team2-title').innerText = teamKeys[1].toUpperCase();
+
+        const renderSquadList = (containerId, players) => {
+          const wrap = document.getElementById(containerId);
+          wrap.innerHTML = '';
+          (players || []).forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'squad-row-item';
+            item.innerHTML = `<span>👤 ${p.name}</span><span class="role-tag">${p.role}</span>`;
+            wrap.appendChild(item);
+          });
+        };
+
+        renderSquadList('sq-team1-list', matchData.squads[teamKeys[0]].playing_xi);
+        renderSquadList('sq-team2-list', matchData.squads[teamKeys[1]].playing_xi);
+      }
+
+      // 7. Commentary Timeline
+      const commWrap = document.getElementById('commentary-list-feed');
+      commWrap.innerHTML = '';
+      if (matchData.full_commentary && Array.isArray(matchData.full_commentary)) {
+        matchData.full_commentary.forEach(c => {
+          const entry = document.createElement('div');
+          const isW = c.badge === 'W' || (c.text && c.text.includes('out'));
+          const isBound = c.badge === '4' || c.badge === '6' || (c.text && (c.text.includes('FOUR') || c.text.includes('SIX')));
+          entry.className = `comm-entry-box ${isW ? 'has-w' : ''} ${isBound ? 'has-4' : ''}`;
+          entry.innerHTML = `
+            ${c.over ? `<div class="comm-over-pill">${c.over}</div>` : ''}
+            <div class="comm-text-body">${c.text}</div>
+          `;
+          commWrap.appendChild(entry);
+        });
+      }
+    }
+
+    // ==================== VIEW SWITCHER (TV TABS) ====================
+    const viewList = ['live', 'scorecard', 'points', 'squads', 'comm'];
+    let currentViewIdx = 0;
+    let autoCycleInterval = null;
+    let isAutoCycleOn = true;
+
+    function switchView(viewId, btnEl) {
+      viewList.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.style.display = 'none';
+      });
+
+      const target = document.getElementById(`view-${viewId}`);
+      if (target) target.style.display = 'flex';
+
+      document.querySelectorAll('.btn-tv').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      playSfx('click');
+    }
+
+    // AUTO-CYCLE FOR YOUTUBE LIVE STREAMING
+    function startAutoCycle() {
+      if (autoCycleInterval) clearInterval(autoCycleInterval);
+      autoCycleInterval = setInterval(() => {
+        if (!isAutoCycleOn) return;
+        currentViewIdx = (currentViewIdx + 1) % viewList.length;
+        const nextView = viewList[currentViewIdx];
+        const btn = document.querySelectorAll('.control-btn-group .btn-tv')[currentViewIdx];
+        switchView(nextView, btn);
+      }, 14000); // Cycles every 14 seconds
+    }
+
+    function toggleAutoCycle() {
+      isAutoCycleOn = !isAutoCycleOn;
+      const btn = document.getElementById('auto-cycle-btn');
+      if (isAutoCycleOn) {
+        btn.className = 'btn-tv toggle-auto';
+        btn.innerText = '⏱️ AUTO-CYCLE: ON';
+        startAutoCycle();
+      } else {
+        btn.className = 'btn-tv toggle-auto off';
+        btn.innerText = '⏱️ AUTO-CYCLE: OFF';
+        if (autoCycleInterval) clearInterval(autoCycleInterval);
+      }
+    }
+
+    // ==================== AUDIO SYNTHESIS SFX (NO ASSETS REQUIRED) ====================
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSfx(type) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.08);
+        } else if (type === 'cheer') {
+          // Crowd cheer burst synth
+          for (let i = 0; i < 4; i++) {
+            const noise = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            noise.type = 'triangle';
+            noise.frequency.setValueAtTime(220 + i * 80, audioCtx.currentTime);
+            noise.frequency.linearRampToValueAtTime(440 + i * 120, audioCtx.currentTime + 0.8);
+            g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.9);
+            noise.connect(g);
+            g.connect(audioCtx.destination);
+            noise.start();
+            noise.stop(audioCtx.currentTime + 0.9);
+          }
+        }
+      } catch (e) {}
+    }
+
+    // ==================== CUSTOM JSON MODAL ====================
+    function openJsonModal() {
+      document.getElementById('json-input').value = JSON.stringify(matchData, null, 2);
+      document.getElementById('json-modal').style.display = 'flex';
+    }
+
+    function closeJsonModal() {
+      document.getElementById('json-modal').style.display = 'none';
+    }
+
+    function applyCustomJson() {
+      try {
+        const raw = document.getElementById('json-input').value;
+        const parsed = JSON.parse(raw);
+        matchData = parsed;
+        renderBroadcast();
+        closeJsonModal();
+        alert('✅ JSON Data Applied Successfully!');
+      } catch (err) {
+        alert('❌ Invalid JSON format: ' + err.message);
+      }
+    }
+
+    // INITIAL START
+    window.addEventListener('DOMContentLoaded', () => {
+      renderBroadcast();
+      startAutoCycle();
+    });
+  </script>
+</body>
+</html>
